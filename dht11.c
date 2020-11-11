@@ -12,7 +12,7 @@ int I_humidity,D_humidity,I_temperature,D_temperature,Checksum;
 
 void msdelay(unsigned int time)  // Function for creating delay in milliseconds.
 {
-    unsigned i,j;
+    unsigned int i,j;
     for(i=0;i<time;i++)    
     	for(j=0;j<1275;j++);
 }
@@ -21,7 +21,7 @@ void Request()     // MUC SEND REQUEST
 {
 	DHT11 = 0;
 	msdelay(18);
-	DHT11=1;
+	DHT11 = 1;
 }
 
 void Response()    //  RECIEVE RESPONSE FROM DHT 11
@@ -43,6 +43,7 @@ int Receive_data()        //Receive_data
 			dataD =((dataD<<1)|0x01);
 		else
 			dataD = (dataD<<1);
+		
 		while(DHT11==1);
 	}
 	return dataD;
@@ -112,6 +113,7 @@ void main()
 	  msdelay(500);
 	
 	  lcd_cmd(0x01);  //clear screen
+	  lcd_cmd(0x80);  // bring cursor to position 1 of line 1
 	
 	  while(1)
 	  {
