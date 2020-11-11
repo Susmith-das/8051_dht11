@@ -2,8 +2,8 @@
 
 #define display_port P2 //Data pins connected to port 2 on microcontroller
 
-sbit rs = P3^2;  //RS pin connected to pin 2 of port 3
-sbit rw = P3^3;  //RW pin connected to pin 3 of port 3
+sbit rs = P3^2;    //RS pin connected to pin 2 of port 3
+sbit rw = P3^3;   //RW pin connected to pin 3 of port 3
 sbit e  = P3^4;  //E pin connected to pin 4 of port 3
 
 sbit DHT11 = P1^3;  //pin for DHT
@@ -94,35 +94,35 @@ void main()
 {
 	  unsigned int a,b,c,d;
 	
-    lcd_init();
+          lcd_init();
 	
 	  lcd_str("welcome");
-	  msdelay(1000);
+	  msdelay(500);
 	
 	  lcd_cmd(0x01);   //clear screen
-	  lcd_cmd(0x80);	 // bring cursor to position 1 of line 1
+	  lcd_cmd(0x80);  // bring cursor to position 1 of line 1
 	
 	  lcd_str("Humidity");
-	  msdelay(1000);
+	  msdelay(500);
 	
-	  lcd_cmd(0x01);  //clear screen
+	  lcd_cmd(0x01);   //clear screen
 	  lcd_cmd(0x80);  // bring cursor to position 1 of line 1
 	
 	  lcd_str("Temperature");
-	  msdelay(1000);
+	  msdelay(500);
 	
 	  lcd_cmd(0x01);  //clear screen
 	
 	  while(1)
-		{
+	  {
 			Request();  // sending starting pulse
 			Response(); // receive response
 			
-			I_humidity = Receive_data();    //8_bit in I_humidity
-			D_humidity = Receive_data();    //8_bit in D_humidity
-			I_temperature = Receive_data(); //8_bit in I_temperature
-			D_temperature = Receive_data(); //8_bit in D_temperature
-			Checksum = Receive_data();      //8_bit in Checksum
+			I_humidity    = Receive_data();      //8_bit in I_humidity
+			D_humidity    = Receive_data();     //8_bit in D_humidity
+			I_temperature = Receive_data();    //8_bit in I_temperature
+			D_temperature = Receive_data();   //8_bit in D_temperature
+			Checksum      = Receive_data();  //8_bit in Checksum
 			
 			lcd_cmd(0x01);  //clear screen
 			
@@ -134,11 +134,12 @@ void main()
 			{
 				a = (I_humidity/10)+48;
 				b = (I_humidity%10)+48;
+				c = (I_temperature/10)+48;
+				d = (I_temperature%10)+48;
 				
 				lcd_cmd(0x80);   // bring cursor to position 1 of line 1
 				
-		                lcd_str(a);
-				lcd_str('.');
+		                lcd_str(a); lcd_str('.');
 				
 				lcd_cmd(0x83);	// bring cursor to position 4 of line 1
 				lcd_str(b);
@@ -147,13 +148,9 @@ void main()
 				
 				lcd_cmd(0x01); //clear screen
 				
-				c = (I_temperature/10)+48;
-				d = (I_temperature%10)+48;
+				lcd_cmd(0x80);  // bring cursor to position 1 of line 1
 				
-				lcd_cmd(0x80);   // bring cursor to position 1 of line 1
-				
-		    		lcd_str(c); 
-				lcd_str('.');
+		    		lcd_str(c); lcd_str('.');
 				
 				lcd_cmd(0x83);	// bring cursor to position 4 of line 1
 				lcd_str(d);
@@ -165,5 +162,5 @@ void main()
 				lcd_cmd(0x80);   // bring cursor to position 1 of line 1
 				
 			}
-		}
-	}
+	    }
+}
