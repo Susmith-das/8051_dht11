@@ -14,7 +14,7 @@ void msdelay(unsigned int time)  // Function for creating delay in milliseconds.
 {
     unsigned i,j;
     for(i=0;i<time;i++)    
-			for(j=0;j<1275;j++);
+    	for(j=0;j<1275;j++);
 }
 
 void Request()     // MUC SEND REQUEST
@@ -124,6 +124,8 @@ void main()
 			D_temperature = Receive_data(); //8_bit in D_temperature
 			Checksum = Receive_data();      //8_bit in Checksum
 			
+			lcd_cmd(0x01);  //clear screen
+			
 			if((I_humidity + D_humidity + I_temperature + D_temperature)!= Checksum)
 			{
 				lcd_str("ERROR");
@@ -134,10 +136,12 @@ void main()
 				b = (I_humidity%10)+48;
 				
 				lcd_cmd(0x80);   // bring cursor to position 1 of line 1
-		    lcd_data(a);
+				
+		                lcd_str(a);
+				lcd_str('.');
 				
 				lcd_cmd(0x83);	// bring cursor to position 4 of line 1
-				lcd_data(b);
+				lcd_str(b);
 				
 				msdelay(1000);
 				
@@ -147,16 +151,18 @@ void main()
 				d = (I_temperature%10)+48;
 				
 				lcd_cmd(0x80);   // bring cursor to position 1 of line 1
-		    lcd_data(c); 
+				
+		    		lcd_str(c); 
+				lcd_str('.');
 				
 				lcd_cmd(0x83);	// bring cursor to position 4 of line 1
-				lcd_data(d);
+				lcd_str(d);
 				
 				msdelay(1000);
 				
 				lcd_cmd(0x01);
 				
-				lcd_cmd(0x80);   // bring cursor to position 2 of line 1
+				lcd_cmd(0x80);   // bring cursor to position 1 of line 1
 				
 			}
 		}
