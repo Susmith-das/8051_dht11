@@ -1,4 +1,3 @@
-# 8051_lcd-_test
-mwona 8051 is pever
+# 8051_dht-11
 
 eda ith upload cheyth nokk
