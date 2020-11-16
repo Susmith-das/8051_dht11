@@ -1,132 +1,139 @@
 #include <reg51.h>
+#include <intrins.h>
 
-#define display_port P2 //Data pins connected to port 2 on microcontroller
+#define lcd P2 //Data pins connected to port 2 on microcontroller
 
-sbit rs = P3^2;    //RS pin connected to pin 2 of port 3
-sbit rw = P3^3;   //RW pin connected to pin 3 of port 3
-sbit e  = P3^4;  //E pin connected to pin 4 of port 3
+sbit DHT = P1^3;    //pin for DHT
+sbit rs  = P3^2;   //RS pin connected to pin 2 of port 3
+sbit e   = P3^3; //E pin connected to pin 4 of port 3
 
-sbit DHT11 = P1^3;  //pin for DHT
+unsigned short int I_humidity,D_humidity,I_temperature,D_temperature,Checksum;
 
-int I_humidity,D_humidity,I_temperature,D_temperature,Checksum;
-
-void msdelay(unsigned int time)  // Function for creating delay in milliseconds.
+void delay(unsigned short int count)// Function for creating delay in milliseconds.
 {
-    unsigned int i,j;
-    for(i=0;i<time;i++)    
-    	for(j=0;j<1275;j++);
-}
+	unsigned short int i;
 
-void Request()     // MUC SEND REQUEST
+	while(count)
+	{
+		i=115;
+		while(i>0)
+			i--;
+		count--;
+	}
+} 
+
+void us_delay()// Function for creating delay of 40microseconds.
 {
-	DHT11 = 0;
-	msdelay(18);
-	DHT11 = 1;
+	_nop_();_nop_();_nop_();_nop_();_nop_();
+	_nop_();_nop_();_nop_();_nop_();_nop_();
+	_nop_();_nop_();_nop_();_nop_();_nop_();
+	_nop_();_nop_();_nop_();_nop_();_nop_();
+	_nop_();_nop_();_nop_();_nop_();_nop_();
+	_nop_();_nop_();_nop_();_nop_();_nop_();
+	_nop_();_nop_();_nop_();_nop_();_nop_();
+	_nop_();_nop_();_nop_();_nop_();_nop_();	
+} 
+
+void Request()     //  SEND REQUEST
+{
+	DHT=0;
+	delay(20);
+	DHT=1;
 }
 
 void Response()    //  RECIEVE RESPONSE FROM DHT 11
 {
-	while(DHT11 == 1);
-	while(DHT11 == 0);
-	while(DHT11 == 1);
+	while(DHT == 1);
+	while(DHT == 0);
+	while(DHT == 1);
 }
 
-int Receive_data()        //Receive_data
+unsigned short int Receive_data()        //Receive_data
 {
-	int i,dataD =0;
-	for(i=0;i<8;i++)
+  unsigned short int k,dataD =0;
+	
+	for(k=0;k<8;k++)
 	{
-		while(DHT11==0);
-		msdelay(40);
-		
-		if(DHT11 == 1)
+		while(DHT==0);
+		us_delay();
+
+		if(DHT == 1)
 			dataD =((dataD<<1)|0x01);
 		else
 			dataD = (dataD<<1);
 		
-		while(DHT11==1);
+		while(DHT==1);
 	}
 	return dataD;
 }
 
 
-void lcd_cmd(unsigned char command)  //Function to send command instruction to LCD
+void lcd_cmd(unsigned char x)  //Function to send command instruction to LCD
 {
-    display_port = command;
+    lcd = x;
     rs= 0;
-    rw=0;
     e=1;
-    msdelay(20);
+    delay(20);
     e=0;
 }
 
-void lcd_data(unsigned char disp_data)  //Function to send display_data to LCD
+void lcd_data(unsigned char y)  //Function to send display_data to LCD
 {
-    display_port = disp_data;
+    lcd = y;
     rs= 1;
-    rw=0;
     e=1;
-    msdelay(20);
+    delay(20);
     e=0;
 }
 
  void lcd_init()    //Function to prepare the LCD  and get it ready
 {
     lcd_cmd(0x38);  // for_using 2 lines and 5X7 matrix of LCD
-    msdelay(10);
+    delay(10);
     lcd_cmd(0x0F);  // turn display ON, cursor blinking
-    msdelay(10);
+    delay(10);
     lcd_cmd(0x01);  //clear screen
-    msdelay(10);
+    delay(10);
     lcd_cmd(0x80);  // bring cursor to position 1 of line 1
-    msdelay(10);
+    delay(10);
 }
 
 void lcd_str(unsigned char *s)
 {
-	unsigned int w;
+	unsigned short int w;
 	for(w =0;s[w]!='\0';w++)
 	{
 		lcd_data(s[w]);
-		msdelay(10);
+		delay(10);
 	}
 }
 void main()
 {
-	  unsigned int a,b,c,d;
+	  unsigned short int a,b,c,d;
+    	  DHT=1;	
+    	  lcd_init();
 	
-          lcd_init();
+	  lcd_cmd(0x84);
 	
 	  lcd_str("welcome");
-	  msdelay(500);
+	  delay(2000);
 	
 	  lcd_cmd(0x01);   //clear screen
-	  lcd_cmd(0x80);  // bring cursor to position 1 of line 1
-	
-	  lcd_str("Humidity");
-	  msdelay(500);
-	
-	  lcd_cmd(0x01);   //clear screen
-	  lcd_cmd(0x80);  // bring cursor to position 1 of line 1
-	
-	  lcd_str("Temperature");
-	  msdelay(500);
-	
-	  lcd_cmd(0x01);  //clear screen
 	  lcd_cmd(0x80);  // bring cursor to position 1 of line 1
 	
 	  while(1)
 	  {
 			Request();  // sending starting pulse
 			Response(); // receive response
+		
+			I_humidity = Receive_data();        //8_bit in I_humidity
+			D_humidity = Receive_data();       //8_bit in D_humidity
+			I_temperature = Receive_data();   //8_bit in I_temperature
+			D_temperature = Receive_data();  //8_bit in D_temperature
+			Checksum = Receive_data();      //8_bit in Checksum
 			
-			I_humidity    = Receive_data();      //8_bit in I_humidity
-			D_humidity    = Receive_data();     //8_bit in D_humidity
-			I_temperature = Receive_data();    //8_bit in I_temperature
-			D_temperature = Receive_data();   //8_bit in D_temperature
-			Checksum      = Receive_data();  //8_bit in Checksum
-			
-			lcd_cmd(0x01);  //clear screen
+			lcd_cmd(0x01);  //clear screen	
+			lcd_cmd(0x80);   // bring cursor to position 1 of line 1
 			
 			if((I_humidity + D_humidity + I_temperature + D_temperature)!= Checksum)
 			{
@@ -141,28 +148,18 @@ void main()
 				
 				lcd_cmd(0x80);   // bring cursor to position 1 of line 1
 				
-		                lcd_str(a); lcd_str('.');
+				lcd_str("HUMIDITY: ");
+		   		lcd_data(a);	
+				lcd_data(b);
 				
-				lcd_cmd(0x83);	// bring cursor to position 4 of line 1
-				lcd_str(b);
+				delay(1000);
 				
-				msdelay(1000);
+				lcd_cmd(0xC0);  // bring cursor to position 1 of line 2
+				lcd_str("TEMPERATURE: ");
+		    		lcd_data(c);
+				lcd_data(d);
 				
-				lcd_cmd(0x01); //clear screen
-				
-				lcd_cmd(0x80);  // bring cursor to position 1 of line 1
-				
-		    		lcd_str(c); lcd_str('.');
-				
-				lcd_cmd(0x83);	// bring cursor to position 4 of line 1
-				lcd_str(d);
-				
-				msdelay(1000);
-				
-				lcd_cmd(0x01);
-				
-				lcd_cmd(0x80);   // bring cursor to position 1 of line 1
-				
+				delay(1000);			
 			}
-	    }
-}
+		}
+	}
